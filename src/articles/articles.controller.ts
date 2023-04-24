@@ -1,23 +1,35 @@
-import { Controller, Get, Param, Body, Post, Put } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Body,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { ArticlesService } from './articles.service';
 import { Article as ArticleModel } from '@prisma/client';
 import { GetArticleDto } from './dtos/get-article.dto';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateArticleDto } from './dtos/create-article.dto';
 import { UpdateArticleDto } from './dtos/update-article.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('article')
+@ApiBearerAuth()
 @ApiTags('article')
 export class ArticlesController {
   constructor(private readonly articleService: ArticlesService) {}
 
   @Get('')
+  @UseGuards(AuthGuard)
   @ApiResponse({ status: 200, type: [GetArticleDto] })
   async getArticles(): Promise<ArticleModel[]> {
     return this.articleService.articles({});
   }
 
   @Get('feed')
+  @UseGuards(AuthGuard)
   @ApiResponse({ status: 200, type: [GetArticleDto] })
   async getPublishedArticles(): Promise<ArticleModel[]> {
     return this.articleService.articles({
@@ -26,12 +38,14 @@ export class ArticlesController {
   }
 
   @Get(':id')
+  @UseGuards(AuthGuard)
   @ApiResponse({ status: 200, type: GetArticleDto })
   async getArticleById(@Param('id') id: string): Promise<ArticleModel> {
     return this.articleService.article({ id });
   }
 
   @Post('')
+  @UseGuards(AuthGuard)
   @ApiResponse({ status: 200, type: GetArticleDto })
   async createDraft(
     @Body() articleData: CreateArticleDto,
@@ -54,6 +68,7 @@ export class ArticlesController {
   }
 
   @Put('')
+  @UseGuards(AuthGuard)
   @ApiResponse({ status: 200, type: GetArticleDto })
   async updateArticle(
     @Param('id') id: string,
@@ -67,6 +82,7 @@ export class ArticlesController {
   }
 
   @Put('publish/:id')
+  @UseGuards(AuthGuard)
   @ApiResponse({ status: 200, type: GetArticleDto })
   async publishArticle(@Param('id') id: string): Promise<ArticleModel> {
     return this.articleService.updatePost({
