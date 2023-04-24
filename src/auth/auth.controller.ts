@@ -5,25 +5,38 @@ import { excludingFieldsHelper } from 'src/helpers/excluding-fields-helper';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GetUserDto } from 'src/users/dtos/get-user.dto';
 import { LoginUserDto } from './dtos/login-user.dto';
+import { HashService } from 'src/services/hash.service';
 
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly hashService: HashService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Post('authenticate')
   @ApiResponse({ status: 200, type: GetUserDto })
   async loginUser(
     @Body()
     userData: LoginUserDto,
-  ): Promise<Omit<UserModel, 'password'>> {
+  ): Promise<any> {
     const { email, password } = userData;
     const user = await this.authService.login({
       where: {
         email,
-        password,
       },
     });
+
+    const authorized = await this.hashService.compare(password, user.password);
+
+    if (!authorized)
+      return {
+        statusCode: 401,
+        message: 'Usuário ou senha invalido!',
+        error: 'Unauthorized',
+      };
+
     const userWithoutPassword = excludingFieldsHelper.exclude(user, [
       'password',
     ]);
