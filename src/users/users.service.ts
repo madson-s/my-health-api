@@ -14,6 +14,13 @@ export class UsersService {
     });
   }
 
+  async getUser(params: { where?: Prisma.UserWhereInput }): Promise<User> {
+    const { where } = params;
+    return this.prisma.user.findFirst({
+      where,
+    });
+  }
+
   async users(params: {
     skip?: number;
     take?: number;
