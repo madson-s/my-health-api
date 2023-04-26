@@ -64,7 +64,7 @@ export class UsersController {
       where: { userId: user.id },
     });
 
-    const oneHour = 60 * 60;
+    const oneHour = 60 * 60 * 1000;
 
     const pin = randomBytes(6).toString('hex');
 
@@ -73,7 +73,7 @@ export class UsersController {
         data: {
           pin,
           userId: user.id,
-          expiresIn: new Date(Date.now() + oneHour),
+          expiresIn: oneHour,
         },
       });
     } else {
@@ -83,7 +83,7 @@ export class UsersController {
         },
         data: {
           pin,
-          expiresIn: new Date(Date.now() + oneHour),
+          expiresIn: oneHour,
         },
       });
     }
@@ -117,7 +117,10 @@ export class UsersController {
 
     const passwordReset = await this.userService.getPin({ where: { pin } });
 
-    if (passwordReset.expiresIn.getTime() > Date.now()) {
+    if (
+      passwordReset.expiresIn + passwordReset.createdAt.getTime() >
+      Date.now()
+    ) {
       throw new BadRequestException();
     }
 
