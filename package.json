@@ -19,6 +19,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@nestjs-modules/mailer": "^1.8.1",
     "@nestjs/common": "^9.0.0",
     "@nestjs/core": "^9.0.5",
     "@nestjs/jwt": "^10.0.3",
@@ -26,6 +27,7 @@
     "@nestjs/swagger": "^6.3.0",
     "@prisma/client": "^4.13.0",
     "bcrypt": "^5.1.0",
+    "googleapis": "^118.0.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.5.5"
   },
