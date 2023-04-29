@@ -51,7 +51,7 @@ export class MailService {
     const { transporterName, to, from, subject, template, context } = options;
     await this.setTransport();
     try {
-      const response = await this.mailerService.sendMail({
+      await this.mailerService.sendMail({
         transporterName,
         to,
         from,
@@ -59,7 +59,6 @@ export class MailService {
         template,
         context,
       });
-      console.log(response);
       return true;
     } catch (error) {
       return false;
