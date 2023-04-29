@@ -11,5 +11,14 @@ export class GetUserDto {
   email: string;
 
   @ApiProperty()
+  bloodType?: string;
+
+  @ApiProperty()
+  phone?: string;
+
+  @ApiProperty()
+  birthday?: string;
+
+  @ApiProperty()
   permissions?: string[];
 }

@@ -28,7 +28,11 @@ export class UsersController {
     @Body()
     userData: SignupUserDto,
   ): Promise<Omit<UserModel, 'password'>> {
-    const { password } = userData;
+    const { password, confirmPassword } = userData;
+
+    if (password !== confirmPassword) {
+      throw new BadRequestException();
+    }
 
     const hashedPassword = await this.hashService.hash(password);
 

@@ -11,5 +11,17 @@ export class SignupUserDto {
   password: string;
 
   @ApiProperty()
+  confirmPassword: string;
+
+  @ApiProperty()
+  bloodType?: string;
+
+  @ApiProperty()
+  phone?: string;
+
+  @ApiProperty()
+  birthday?: string;
+
+  @ApiProperty()
   permissions?: string[];
 }
