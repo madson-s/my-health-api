@@ -4,11 +4,12 @@ import { User as UserModel } from '@prisma/client';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SignupUserDto } from './dtos/signup-user.dto';
 import { GetUserDto } from './dtos/get-user.dto';
-import { excludingFieldsHelper } from 'src/helpers/excluding-fields-helper';
 import { HashService } from 'src/services/hash.service';
 import { MailService } from 'src/services/mail.service';
-import { randomBytes } from 'crypto';
-import { PrismaService } from 'src/database/prisma.service';
+import { FieldService } from 'src/services/field.service';
+import { ResetService } from 'src/reset/reset.service';
+import { UpdatePasswordDto } from './dtos/update-password.dto';
+import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 
 @Controller('user')
 @ApiTags('user')
@@ -16,8 +17,9 @@ export class UsersController {
   constructor(
     private readonly hashService: HashService,
     private readonly userService: UsersService,
+    private readonly resetService: ResetService,
     private readonly mailService: MailService,
-    private readonly prisma: PrismaService,
+    private readonly fieldService: FieldService,
   ) {}
 
   @Post('')
@@ -35,9 +37,7 @@ export class UsersController {
       password: hashedPassword,
     });
 
-    const userWithoutPassword = excludingFieldsHelper.exclude(user, [
-      'password',
-    ]);
+    const userWithoutPassword = this.fieldService.exclude(user, ['password']);
 
     return userWithoutPassword;
   }
@@ -46,9 +46,7 @@ export class UsersController {
   @ApiResponse({ status: 200, type: GetUserDto })
   async forgotPassword(
     @Body()
-    userData: {
-      email: string;
-    },
+    userData: ForgotPasswordDto,
   ): Promise<any> {
     const { email } = userData;
 
@@ -60,33 +58,7 @@ export class UsersController {
       throw new BadRequestException();
     }
 
-    const passwordResetExists = await this.userService.getPin({
-      where: { userId: user.id },
-    });
-
-    const oneHour = 60 * 60 * 1000;
-
-    const pin = randomBytes(6).toString('hex');
-
-    if (!passwordResetExists) {
-      await this.prisma.passwordReset.create({
-        data: {
-          pin,
-          userId: user.id,
-          expiresIn: oneHour,
-        },
-      });
-    } else {
-      await this.prisma.passwordReset.update({
-        where: {
-          id: passwordResetExists.id,
-        },
-        data: {
-          pin,
-          expiresIn: oneHour,
-        },
-      });
-    }
+    const { pin } = await this.resetService.crete({ userId: user.id });
 
     const options = {
       transporterName: 'gmail',
@@ -103,11 +75,7 @@ export class UsersController {
   @ApiResponse({ status: 200, type: GetUserDto })
   async updatePassword(
     @Body()
-    userData: {
-      password: string;
-      confirmPassword: string;
-      pin: string;
-    },
+    userData: UpdatePasswordDto,
   ): Promise<Omit<UserModel, 'password'>> {
     const { password, confirmPassword, pin } = userData;
 
@@ -115,17 +83,16 @@ export class UsersController {
       throw new BadRequestException();
     }
 
-    const passwordReset = await this.userService.getPin({ where: { pin } });
+    const reset = await this.resetService.getReset({ where: { pin } });
 
-    if (
-      passwordReset.expiresIn + passwordReset.createdAt.getTime() >
-      Date.now()
-    ) {
+    const expiryTime = reset.createdAt.getTime() + reset.expiresIn;
+
+    if (expiryTime < Date.now()) {
       throw new BadRequestException();
     }
 
     const user = await this.userService.getUser({
-      where: { id: passwordReset.userId },
+      where: { id: reset.userId },
     });
 
     if (!user) {
@@ -141,7 +108,9 @@ export class UsersController {
       where: { id: user.id },
     });
 
-    const userWithoutPassword = excludingFieldsHelper.exclude(updatedUser, [
+    await this.resetService.invalidate({ id: reset.id });
+
+    const userWithoutPassword = this.fieldService.exclude(updatedUser, [
       'password',
     ]);
 
