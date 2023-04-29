@@ -5,7 +5,6 @@ import {
   Post,
   UnauthorizedException,
 } from '@nestjs/common';
-import { excludingFieldsHelper } from 'src/helpers/excluding-fields-helper';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LoginUserDto } from './dtos/login-user.dto';
 import { HashService } from 'src/services/hash.service';
@@ -14,6 +13,7 @@ import { AuthService } from './auth.service';
 import { RefreshTokenDto } from './dtos/refresh-token.dto';
 import { ValidadeTokenDto } from './dtos/validate-token.dto';
 import { AuthUserDto } from './dtos/auth-user.dto';
+import { FieldService } from 'src/services/field.service';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -21,6 +21,7 @@ export class AuthController {
   constructor(
     private readonly usersService: UsersService,
     private readonly hashService: HashService,
+    private readonly fieldService: FieldService,
     private readonly authService: AuthService,
   ) {}
 
@@ -47,9 +48,7 @@ export class AuthController {
       throw new UnauthorizedException();
     }
 
-    const userWithoutPassword = excludingFieldsHelper.exclude(user, [
-      'password',
-    ]);
+    const userWithoutPassword = this.fieldService.exclude(user, ['password']);
 
     const [access_token, refresh_token] = await this.authService.generateToken(
       user.id,
@@ -83,9 +82,7 @@ export class AuthController {
       throw new UnauthorizedException();
     }
 
-    const userWithoutPassword = excludingFieldsHelper.exclude(user, [
-      'password',
-    ]);
+    const userWithoutPassword = this.fieldService.exclude(user, ['password']);
 
     return userWithoutPassword;
   }
@@ -117,9 +114,7 @@ export class AuthController {
       throw new NotFoundException('Usuário não encontrado');
     }
 
-    const userWithoutPassword = excludingFieldsHelper.exclude(user, [
-      'password',
-    ]);
+    const userWithoutPassword = this.fieldService.exclude(user, ['password']);
 
     const [access_token, refresh_token] = await this.authService.generateToken(
       user.id,
