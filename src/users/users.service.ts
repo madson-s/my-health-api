@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../database/prisma.service';
-import { User, Prisma, PasswordReset } from '@prisma/client';
+import { PrismaService } from '../services/prisma.service';
+import { User, Prisma } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -17,16 +17,6 @@ export class UsersService {
   async getUser(params: { where?: Prisma.UserWhereInput }): Promise<User> {
     const { where } = params;
     return this.prisma.user.findFirst({
-      where,
-    });
-  }
-
-  async getPin(params: {
-    where?: Prisma.PasswordResetWhereInput;
-  }): Promise<PasswordReset> {
-    const { where } = params;
-
-    return this.prisma.passwordReset.findFirst({
       where,
     });
   }
