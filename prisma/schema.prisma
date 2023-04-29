@@ -23,7 +23,6 @@ model User {
   password      String
   permissions   String[]
   Article       Article[]
-  PasswordReset PasswordReset[]
 }
 
 model Article {
@@ -35,12 +34,12 @@ model Article {
   authorId String?
 }
 
-model PasswordReset {
+model Reset {
   id        String   @id @default(uuid())
   pin       String   @unique
   createdAt DateTime @default(now())
   expiresIn Int 
-  user      User?    @relation(fields: [userId], references: [id])
+  expired   Boolean  @default(false)
   userId    String?
 }
 
