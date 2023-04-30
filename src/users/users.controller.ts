@@ -28,7 +28,18 @@ export class UsersController {
     @Body()
     userData: SignupUserDto,
   ): Promise<Omit<UserModel, 'password'>> {
-    const { password, confirmPassword } = userData;
+    const {
+      name,
+      email,
+      password,
+      confirmPassword,
+      bloodType,
+      phone,
+      birthday,
+      permissions,
+    } = userData;
+
+    delete userData.confirmPassword;
 
     if (password !== confirmPassword) {
       throw new BadRequestException();
@@ -37,8 +48,13 @@ export class UsersController {
     const hashedPassword = await this.hashService.hash(password);
 
     const user = await this.userService.createUser({
-      ...userData,
+      name,
+      email,
+      bloodType,
+      phone,
       password: hashedPassword,
+      birthday: new Date(birthday),
+      permissions,
     });
 
     const userWithoutPassword = this.fieldService.exclude(user, ['password']);

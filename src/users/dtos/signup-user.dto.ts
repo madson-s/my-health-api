@@ -20,7 +20,7 @@ export class SignupUserDto {
   phone?: string;
 
   @ApiProperty()
-  birthday?: string;
+  birthday?: Date;
 
   @ApiProperty()
   permissions?: string[];
