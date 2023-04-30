@@ -15,7 +15,7 @@ import { FieldService } from 'src/services/field.service';
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '30s' },
+      signOptions: { expiresIn: '10m' },
     }),
   ],
   controllers: [AuthController],
