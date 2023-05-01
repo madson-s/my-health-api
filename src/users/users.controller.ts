@@ -105,6 +105,10 @@ export class UsersController {
 
     const reset = await this.resetService.getReset({ where: { pin } });
 
+    if (!reset) {
+      throw new BadRequestException();
+    }
+
     const expiryTime = reset.createdAt.getTime() + reset.expiresIn;
 
     if (expiryTime < Date.now()) {
